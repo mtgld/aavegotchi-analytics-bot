@@ -4,7 +4,7 @@
 ## Installing the Script
 I am assuming you already have [Node.js](https://nodejs.org/en/) installed. The script was developed and tested with v17.4.0. To install, run the following from the root directory of the project:
 ```
-npm install
+yarn
 ```
 
 ## Creating the Configuration File
@@ -18,14 +18,12 @@ The script needs a file named `.env` with configuration details specified. You c
 ## Running the Script
 The script can be run with the command:
 ```
-node app.js
+yarn start
 ```
 
 
 # Production Use
 Simply put, do not use this script in production if you do not know what you're doing. I strongly urge you to implement a more secure method than plaintext for giving a script private keys. In production, a secure secret storage solution (ie: Docker secrets) is highly advisable.
-
-If you do use the script as is in production with a plaintext private key in the configuration file, it is highly recommended that you use dedicated lending hot wallet with only a few MATIC to cover gas costs. Do not keep valuable assets in this wallet. You'll need to set your lending hot wallet as a lending operator. This can be done using [Louper.dev](https://louper.dev/diamond/0x86935F11C86623deC8a25696E1C19a8659CbF95d?network=polygon) or some similar tool to call the `setLendingOperator`  method of the Aavegotchi LendingGetterAndSetterFacet smart contract.
 
 ## Using PM2
 To run the application in the background, you can use [PM2](https://pm2.keymetrics.io/) to daemonize it. An `ecosystem.config.js` file has been provided with some suggested settings. You can install PM2 globally using `npm install pm2 -g`.
