@@ -264,11 +264,11 @@ client.on("messageCreate", async (message) => {
     if (command == "gotchis") {
         let result = await getChanneledAlchemicaRevenue();
         let oneBigMessage = result.map((e) => e.message).join("\n");
-        message.reply("\n" + oneBigMessage);
+        message.reply("\`\`\`\n" + oneBigMessage + "\`\`\`");
     } else if (command == "parcels") {
         let result = await getClaimedAlchemicaParcelRevenue();
         let oneBigMessage = result.map((e) => e.message).join("\n");
-        message.reply("\n" + oneBigMessage);
+        message.reply("\`\`\`\n" + oneBigMessage + "\`\`\`");
     }
 
     return;
