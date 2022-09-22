@@ -1,0 +1,29 @@
+{
+    "name": "@mtgld/gotchi-manager-analytics",
+    "version": "1.0.0",
+    "description": "Script for gathering and distribution data about channeled and claimed alchemica from aavegotchi",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js"
+    },
+    "keywords": [
+        "aavegotchi",
+        "gotchi",
+        "lending"
+    ],
+    "author": "Frank",
+    "engines": {
+        "npm": ">=7.0.0",
+        "node": ">=16.0.0"
+    },
+    "license": "MIT",
+    "dependencies": {
+        "apollo-fetch": "^0.7.0",
+        "discord.js": "^14.4.0",
+        "dotenv": "^16.0.0",
+        "easy-table": "^1.2.0",
+        "ethers": "^5.7.1",
+        "graphql": "^16.6.0",
+        "https": "^1.0.0"
+    }
+}
