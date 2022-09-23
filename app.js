@@ -116,7 +116,7 @@ const formatChanneledAlchemicaMessage = (gotchiId, data) => {
         t.newRow();
     });
 
-    const message = `Gotchi ${gotchiId} channeled Alchemica \n ${t.toString()}`;
+    const message = `Gotchi ${gotchiId} channeled Alchemica\n${t.toString()}`;
     return message;
 };
 
