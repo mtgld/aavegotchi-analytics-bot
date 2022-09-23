@@ -46,26 +46,23 @@ ${revenueTable(result.overallDataIntervals)}\`\`\``);
         } else if (command == "stats") {
             let gotchIdsAmount = 0;
             let parcelIdsAmount = 0;
+            const wallet = args[0] || OWNER_WALLET_ADDRESS;
             const [channeledRevenue, claimedRevenue] = await Promise.all([
-                fetchGotchiIdsOf(args[1] || OWNER_WALLET_ADDRESS).then(
-                    (gotchiIds) => {
-                        gotchIdsAmount = gotchiIds.length;
-                        return channeledAlchemicaWithUSD(gotchiIds);
-                    }
-                ),
-                getParcelsOf(args[1] || OWNER_WALLET_ADDRESS).then(
-                    (parcelIds) => {
-                        parcelIdsAmount = parcelIds.length;
-                        return claimedAlchemicaWithUSD(parcelIds);
-                    }
-                ),
+                fetchGotchiIdsOf(wallet).then((gotchiIds) => {
+                    gotchIdsAmount = gotchiIds.length;
+                    return channeledAlchemicaWithUSD(gotchiIds);
+                }),
+                getParcelsOf(wallet).then((parcelIds) => {
+                    parcelIdsAmount = parcelIds.length;
+                    return claimedAlchemicaWithUSD(parcelIds);
+                }),
             ]);
 
             message.reply(`\`\`\`
 Daily report on ${new Date().toLocaleDateString(
                 "en-EN"
             )} for your assets managed by Metaguild
-Owner address: ${OWNER_WALLET_ADDRESS}
+Owner address: ${wallet}
 
 Total Gotchis: ${await gotchIdsAmount}
 Total Parcels: ${await parcelIdsAmount}
