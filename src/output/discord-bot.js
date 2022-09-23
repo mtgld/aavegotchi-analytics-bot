@@ -29,8 +29,20 @@ const startGotchiManagerBot = () => {
         const command = args.shift()?.toLowerCase();
         if (command == "gotchi" && args.length > 0) {
             let result = await channeledAlchemicaWithUSD([parseInt(args[0])]);
+            message.reply(`\`\`\`
+Channeled Alchemica report for Gotchi ${args[0]}
+
+--------------------- CHANNELING STATS ---------------------
+
+${revenueTable(result.overallDataIntervals)}\`\`\``);
         } else if (command == "parcel" && args.length > 0) {
             let result = await claimedAlchemicaWithUSD([parseInt(args[0])]);
+            message.reply(`\`\`\`
+Claimed Alchemica report for Parcel ${args[0]}
+
+--------------------- HARVESTING STATS ---------------------
+
+${revenueTable(result.overallDataIntervals)}\`\`\``);
         } else if (command == "stats") {
             let gotchIdsAmount = 0;
             let parcelIdsAmount = 0;
