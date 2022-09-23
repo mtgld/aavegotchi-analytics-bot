@@ -1,0 +1,9 @@
+const TIME_INTERVAL_24h = 86400;
+const TIME_INTERVAL_7d = 604800;
+const TIME_INTERVAL_30d = 2592000;
+
+module.exports = {
+    TIME_INTERVAL_24h,
+    TIME_INTERVAL_30d,
+    TIME_INTERVAL_7d,
+};
