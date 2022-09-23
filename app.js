@@ -46,11 +46,11 @@ const getChanneledAlchemicaEvents = async (
 };
 
 const fetchGotchiIds = async (walletAddress) => {
-    let query = `{aavegotchis(where: {originalOwner: "${walletAddress}"}) {
+    let query = `{aavegotchis(where: {originalOwner: "${walletAddress.toLowerCase()}"}) {
         id
     }}`;
 
-    let result = await apolloFetch({ query });
+    let result = await apolloFetchCore({ query });
     return result.data.aavegotchis.map((e) => parseInt(e.id));
 };
 
@@ -295,7 +295,7 @@ client.on("messageCreate", async (message) => {
         let parcelIds = await fetchParcels(args[1] || OWNER_WALLET_ADDRESS);
         let claimedRevenue = await getClaimedAlchemicaParcelRevenue(parcelIds);
 
-        let message = `
+        message.reply(`
             Daily report on DD/MM/YYYY for your assets managed by Metaguild
             Owner address: ${OWNER_WALLET_ADDRESS}
 
@@ -317,7 +317,7 @@ client.on("messageCreate", async (message) => {
             24h       105.20   52.60    26.30   10.52   8/9       31
             7d        735.20   367.60   183.80  73.52   110/117   123
             30d       3124.60  1562.30  781.15  312.46  870/930   401
-        `;
+        `);
     } else {
         message.reply(
             "Allowed Commands are: \n- !gotchi <gotchiId>\n- !parcel <realmId>\n-!stats (<address>)"
