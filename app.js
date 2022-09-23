@@ -24,6 +24,37 @@ const apolloFetchCore = createApolloFetch({
 const TIME_INTERVAL_24h = 86400;
 const TIME_INTERVAL_7d = 604800;
 const TIME_INTERVAL_30d = 2592000;
+
+const ALCHEMICA_FUD_ADDRESS = "0x403E967b044d4Be25170310157cB1A4Bf10bdD0f";
+const ALCHEMICA_FOMO_ADDRESS = "0x44A6e0BE76e1D9620A7F76588e4509fE4fa8E8C8";
+const ALCHEMICA_ALPHA_ADDRESS = "0x6a3E7C3c6EF65Ee26975b12293cA1AAD7e1dAeD2";
+const ALCHEMICA_KEK_ADDRESS = "0x42E5E06EF5b90Fe15F853F59299Fc96259209c5C";
+const REVENUE_TOKENS = [
+    ALCHEMICA_FUD_ADDRESS,
+    ALCHEMICA_FOMO_ADDRESS,
+    ALCHEMICA_ALPHA_ADDRESS,
+    ALCHEMICA_KEK_ADDRESS,
+];
+let alchemicaPrices = [0, 0, 0, 0];
+
+const axios = require("axios");
+const updateAlchemicaPrices = async () => {
+    let promisses = [];
+    let tokens = REVENUE_TOKENS.map((e) => `polygon:${e}`).join(",");
+    const values = await axios.default.get(
+        `https://coins.llama.fi/prices/current/${tokens}`
+    );
+
+    alchemicaPrices[0] =
+        values.data.coins[`polygon:${ALCHEMICA_FUD_ADDRESS}`].price;
+    alchemicaPrices[1] =
+        values.data.coins[`polygon:${ALCHEMICA_FOMO_ADDRESS}`].price;
+    alchemicaPrices[2] =
+        values.data.coins[`polygon:${ALCHEMICA_ALPHA_ADDRESS}`].price;
+    alchemicaPrices[3] =
+        values.data.coins[`polygon:${ALCHEMICA_KEK_ADDRESS}`].price;
+};
+
 const getChanneledAlchemicaEvents = async (
     gotchis = [],
     startTimestamp = 0,
@@ -138,7 +169,7 @@ const formatChanneledAlchemicaMessage = (gotchiId, data) => {
     return message;
 };
 
-const formatAlchemicaClaimedParcelMessage = (parcelId, data) => {
+const formatAlchemicaClaimedParcelMessage = (parcelId, data, dataUSD) => {
     const getInterval = (i) => {
         switch (i) {
             case 0:
@@ -152,13 +183,14 @@ const formatAlchemicaClaimedParcelMessage = (parcelId, data) => {
         }
     };
     const t = new Table();
-
+    console.log(dataUSD);
     data.forEach((e, i) => {
         t.cell("INTERVAL", getInterval(i));
         t.cell("FUD", e[0].toFixed(2));
         t.cell("FOMO", e[1].toFixed(2));
         t.cell("ALPHA", e[2].toFixed(2));
         t.cell("KEK", e[3].toFixed(2));
+        t.cell("USD", dataUSD[i]);
         t.newRow();
     });
 
@@ -248,9 +280,29 @@ const getClaimedAlchemicaParcelRevenue = async (parcelIds = []) => {
             parcelSums.push(sumAlchemica(parcelResultsFilter));
         });
 
+        let parcelSumsUSD = [];
+        parcelSums.forEach((f, j) => {
+            parcelSumsUSD[j] = f.reduce((prev, next, index) => {
+                let value = 0;
+
+                // if first init with price
+                if (index == 1) {
+                    value = prev * alchemicaPrices[0];
+                } else {
+                    value = prev;
+                }
+
+                value += next * alchemicaPrices[index];
+                return value;
+            });
+        });
+
+        parcelSumsUSD = parcelSumsUSD.map((e) => e.toFixed(2));
+
         let parcelTable = formatAlchemicaClaimedParcelMessage(
             parcelId,
-            parcelSums
+            parcelSums,
+            parcelSumsUSD
         );
         data.push({
             gotchiId: parcelId,
@@ -279,10 +331,12 @@ client.on("messageCreate", async (message) => {
     const args = commandBody.split(" ");
     const command = args.shift()?.toLowerCase();
     if (command == "gotchi" && args.length > 0) {
+        await updateAlchemicaPrices();
         let result = await getChanneledAlchemicaRevenue([parseInt(args[0])]);
         let oneBigMessage = result.map((e) => e.message).join("\n");
         message.reply("```\n" + oneBigMessage + "```");
     } else if (command == "parcel" && args.length > 0) {
+        await updateAlchemicaPrices();
         let result = await getClaimedAlchemicaParcelRevenue([
             parseInt(args[0]),
         ]);
@@ -290,6 +344,7 @@ client.on("messageCreate", async (message) => {
         let oneBigMessage = result.map((e) => e.message).join("\n");
         message.reply("```\n" + oneBigMessage + "```");
     } else if (command == "stats") {
+        await updateAlchemicaPrices();
         let gotchiIds = await fetchGotchiIds(args[1] || OWNER_WALLET_ADDRESS);
         let channeledRevenue = getChanneledAlchemicaRevenue(gotchiIds);
         let parcelIds = await fetchParcels(args[1] || OWNER_WALLET_ADDRESS);
