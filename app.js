@@ -14,6 +14,11 @@ const uri =
     process.env.GOTCHIVERSE_SUBGRAPH ||
     "https://api.thegraph.com/subgraphs/name/aavegotchi/gotchiverse-matic";
 const apolloFetch = createApolloFetch({ uri });
+const apolloFetchCore = createApolloFetch({
+    uri:
+        process.env.CORE_SUBGRAPH ||
+        "https://api.thegraph.com/subgraphs/name/aavegotchi/aavegotchi-core-matic",
+});
 
 // Calc Channeled Alchemica Revenue
 const TIME_INTERVAL_24h = 86400;
@@ -40,22 +45,31 @@ const getChanneledAlchemicaEvents = async (
     return result.data.channelAlchemicaEvents;
 };
 
-const getChanneledAlchemicaRevenue = async () => {
-    let currentTimestamp = parseInt((new Date().getTime() / 1000).toString());
+const fetchGotchiIds = async (walletAddress) => {
+    let query = `{aavegotchis(where: {originalOwner: "${walletAddress}"}) {
+        id
+    }}`;
 
+    let result = await apolloFetch({ query });
+    return result.data.aavegotchis.map((e) => parseInt(e.id));
+};
+
+const getChanneledAlchemicaRevenue = async (gotchiIds = []) => {
+    let currentTimestamp = parseInt((new Date().getTime() / 1000).toString());
+    let gotchis = gotchiIds.length > 0 ? gotchiIds : GOTCHI_IDS;
     const results = await Promise.all([
         getChanneledAlchemicaEvents(
-            GOTCHI_IDS.map((e) => parseInt(e)),
+            gotchis.map((e) => parseInt(e)),
             currentTimestamp - TIME_INTERVAL_24h,
             currentTimestamp
         ),
         getChanneledAlchemicaEvents(
-            GOTCHI_IDS,
+            gotchis,
             currentTimestamp - TIME_INTERVAL_7d,
             currentTimestamp
         ),
         getChanneledAlchemicaEvents(
-            GOTCHI_IDS,
+            gotchis,
             currentTimestamp - TIME_INTERVAL_30d,
             currentTimestamp
         ),
@@ -73,9 +87,11 @@ const getChanneledAlchemicaRevenue = async () => {
     };
 
     let data = [];
-    GOTCHI_IDS.forEach((gotchiId) => {
+
+    gotchis.forEach((gotchiId) => {
         // daily, weekly, monthly
         let gotchiSums = [];
+        let channelEvents = 0;
         results.forEach((r, i) => {
             let gotchiResultsInterval = r.filter((f) => f.gotchiId == gotchiId);
             gotchiSums.push(sumAlchemica(gotchiResultsInterval));
@@ -85,6 +101,8 @@ const getChanneledAlchemicaRevenue = async () => {
         data.push({
             gotchiId: gotchiId,
             data: gotchiSums,
+            gotchiAmount: gotchis.length,
+            channelAmount: channelEvents,
             message: gotchiTable,
         });
     });
@@ -167,13 +185,11 @@ const getAlchemicaClaimedEvents = async (
     }
   }`;
 
-    console.log(query);
     let result = await apolloFetch({ query });
-    console.log(result);
     return result.data.alchemicaClaimedEvents;
 };
 
-const getParcelsFrom = async (address) => {
+const fetchParcels = async (address) => {
     let query = `
       {parcels(where: {owner: "${address}"}) {
         id
@@ -185,13 +201,14 @@ const getParcelsFrom = async (address) => {
 };
 
 // Calc Parcel Revenue
-const getClaimedAlchemicaParcelRevenue = async () => {
+const getClaimedAlchemicaParcelRevenue = async (parcelIds = []) => {
     // get Parcels
     let currentTimestamp = parseInt((new Date().getTime() / 1000).toString());
 
-    console.log(currentTimestamp);
-
-    let parcels = await getParcelsFrom(OWNER_WALLET_ADDRESS);
+    let parcels =
+        parcelIds.length != 0
+            ? parcelIds
+            : await fetchParcels(OWNER_WALLET_ADDRESS);
     const results = await Promise.all([
         getAlchemicaClaimedEvents(
             parcels,
@@ -245,6 +262,8 @@ const getClaimedAlchemicaParcelRevenue = async () => {
     return data;
 };
 
+const fetchAlchemicaPrices = () => {};
+
 // Discord Bot
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || "";
 const Discord = require("discord.js");
@@ -253,22 +272,56 @@ const client = new Discord.Client({
 });
 client.login(DISCORD_BOT_TOKEN);
 client.on("messageCreate", async (message) => {
-    console.log(message.content);
     if (message.author.bot) return;
     if (!message.content.startsWith("!")) return;
 
     const commandBody = message.content.slice("!".length);
     const args = commandBody.split(" ");
     const command = args.shift()?.toLowerCase();
+    if (command == "gotchi" && args.length > 0) {
+        let result = await getChanneledAlchemicaRevenue([parseInt(args[0])]);
+        let oneBigMessage = result.map((e) => e.message).join("\n");
+        message.reply("```\n" + oneBigMessage + "```");
+    } else if (command == "parcel" && args.length > 0) {
+        let result = await getClaimedAlchemicaParcelRevenue([
+            parseInt(args[0]),
+        ]);
 
-    if (command == "gotchis") {
-        let result = await getChanneledAlchemicaRevenue();
         let oneBigMessage = result.map((e) => e.message).join("\n");
-        message.reply("\`\`\`\n" + oneBigMessage + "\`\`\`");
-    } else if (command == "parcels") {
-        let result = await getClaimedAlchemicaParcelRevenue();
-        let oneBigMessage = result.map((e) => e.message).join("\n");
-        message.reply("\`\`\`\n" + oneBigMessage + "\`\`\`");
+        message.reply("```\n" + oneBigMessage + "```");
+    } else if (command == "stats") {
+        let gotchiIds = await fetchGotchiIds(args[1] || OWNER_WALLET_ADDRESS);
+        let channeledRevenue = getChanneledAlchemicaRevenue(gotchiIds);
+        let parcelIds = await fetchParcels(args[1] || OWNER_WALLET_ADDRESS);
+        let claimedRevenue = await getClaimedAlchemicaParcelRevenue(parcelIds);
+
+        let message = `
+            Daily report on DD/MM/YYYY for your assets managed by Metaguild
+            Owner address: ${OWNER_WALLET_ADDRESS}
+
+            Total Gotchis: ${gotchiIds.length}
+            Total Parcels: ${parcelIds.length}
+
+            --------------------- CHANNELING STATS ---------------------
+
+            INTERVAL  FUD      FOMO     ALPHA   KEK     Channels  USD
+            --------  -------  -------  ------  ------  --------  ------
+            24h       105.20   52.60    26.30   10.52   31/31     31
+            7d        735.20   367.60   183.80  73.52   210/217   123
+            30d       3124.60  1562.30  781.15  312.46  870/930   401
+
+            --------------------- HARVESTING STATS ---------------------
+
+            INTERVAL  FUD      FOMO     ALPHA   KEK     HARVESTS  USD
+            --------  -------  -------  ------  ------  --------  ------
+            24h       105.20   52.60    26.30   10.52   8/9       31
+            7d        735.20   367.60   183.80  73.52   110/117   123
+            30d       3124.60  1562.30  781.15  312.46  870/930   401
+        `;
+    } else {
+        message.reply(
+            "Allowed Commands are: \n- !gotchi <gotchiId>\n- !parcel <realmId>\n-!stats (<address>)"
+        );
     }
 
     return;
