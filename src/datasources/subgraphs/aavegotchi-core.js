@@ -7,12 +7,22 @@ const apolloFetchCore = createApolloFetch({
 });
 
 const fetchGotchiIdsOf = async (walletAddress) => {
-    let query = `{aavegotchis(where: {originalOwner: "${walletAddress.toLowerCase()}"}) {
-        id
-    }}`;
+    let allResults = [];
+    let id = "0";
+    let results = {};
+    do {
+        let query = `{aavegotchis(orderBy: id orderDirection: asc first: 1000 where: {id_gt: ${id} originalOwner: "${walletAddress.toLowerCase()}"}) {
+            id
+        }}`;
 
-    let result = await apolloFetchCore({ query });
-    return result.data.aavegotchis.map((e) => parseInt(e.id));
+        results = await apolloFetchCore({ query });
+        allResults = allResults.concat(
+            results.data.aavegotchis.map((e) => parseInt(e.id))
+        );
+        id = results.data.aavegotchis[results.data.aavegotchis.length - 1].id;
+    } while (results.data && results.data.aavegotchis.length == 1000);
+
+    return allResults;
 };
 
 module.exports = {
