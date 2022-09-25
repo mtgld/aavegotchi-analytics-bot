@@ -10,31 +10,52 @@ const getChanneledAlchemicaEvents = async (
     startTimestamp = 0,
     endTimestamp = 0
 ) => {
-    const query = `
+    let lastId = "0";
+    let allResults = [];
+    let result = {};
+    do {
+        const query = `
     {
-      channelAlchemicaEvents(where: {
+      channelAlchemicaEvents(first: 1000 orderBy: id orderDirection: asc where: {
         timestamp_gte: ${startTimestamp}
         timestamp_lt: ${endTimestamp}
         gotchiId_in:[${gotchis.join(",")}]
+        id_gt: ${lastId}
       }) {
         gotchiId
         alchemica
       }
     }`;
 
-    let result = await apolloFetch({ query });
-    return result.data.channelAlchemicaEvents;
+        result = await apolloFetch({ query });
+        allResults = allResults.concat(result.data.channelAlchemicaEvents);
+        lastId =
+            result.data.channelAlchemicaEvents[
+                result.data.channelAlchemicaEvents.length - 1
+            ].id;
+    } while (result.data.channelAlchemicaEvents.length == 1000);
+
+    return allResults;
 };
 
 const getParcelsOf = async (address) => {
-    let query = `
-    {parcels(where: {owner: "${address}"}) {
-      id
-    }}
-    `;
+    let lastId = "0";
+    let result;
+    let allResults = [];
+    do {
+        let query = `
+          {parcels(first: 1000 orderBy: id orderDirection: asc where: {id_gt: ${lastId} owner: "${address}"}) {
+            id
+          }}
+        `;
 
-    const result = await apolloFetch({ query });
-    return result.data.parcels.map((e) => parseInt(e.id));
+        result = await apolloFetch({ query });
+        allResults = allResults.concat(
+            result.data.parcels.map((e) => parseInt(e.id))
+        );
+        lastId = result.data.parcels[result.data.parcels.length - 1].id;
+    } while (result.data.parcels.length == 1000);
+    return allResults;
 };
 
 const getAlchemicaClaimedEventsOfParcels = async (
@@ -42,22 +63,35 @@ const getAlchemicaClaimedEventsOfParcels = async (
     startTimestamp = 0,
     endTimestamp = 0
 ) => {
-    const query = `
-{
-  alchemicaClaimedEvents(where: {
-    timestamp_gte: ${startTimestamp}
-    timestamp_lt: ${endTimestamp}
-    realmId_in:[${parcels.join(",")}]
-  }) {
-    realmId
-    alchemicaType
-    amount
-    timestamp
-  }
-}`;
+    let allResults = [];
+    let lastId = "0";
+    let result;
+    do {
+        const query = `
+    {
+      alchemicaClaimedEvents(first: 1000 orderBy: id orderDirection: asc where: {
+        timestamp_gte: ${startTimestamp}
+        timestamp_lt: ${endTimestamp}
+        realmId_in:[${parcels.join(",")}]
+        id_gt: ${lastId}
+      }) {
+        id
+        realmId
+        alchemicaType
+        amount
+        timestamp
+      }
+    }`;
 
-    let result = await apolloFetch({ query });
-    return result.data.alchemicaClaimedEvents;
+        result = await apolloFetch({ query });
+        allResults = allResults.concat(result.data.alchemicaClaimedEvents);
+        lastId =
+            result.data.alchemicaClaimedEvents[
+                result.data.alchemicaClaimedEvents.length - 1
+            ].id;
+    } while (result.data.alchemicaClaimedEvents.length == 1000);
+
+    return allResults;
 };
 
 module.exports = {
