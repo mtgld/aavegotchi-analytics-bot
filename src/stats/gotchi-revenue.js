@@ -9,25 +9,10 @@ const {
     TIME_INTERVAL_7d,
     TIME_INTERVAL_30d,
 } = require("../utils/constants");
+const { getTimestampOfEndOfYesterday } = require("../utils/datetime");
 
 const channeledAlchemicaWithUSD = async (gotchis = []) => {
-    let startDate = new Date();
-    startDate.setDate(startDate.getDate() - 1);
-    startDate.setHours(23);
-    startDate.setMinutes(59);
-    startDate.setSeconds(59);
-
-    let endUTC = Date.UTC(
-        startDate.getFullYear(),
-        startDate.getMonth(),
-        startDate.getDate() - 1,
-        23,
-        59,
-        0,
-        0
-    );
-    let endTimestamp = Math.floor(endUTC / 1000);
-    // let startTimestamp = Math.floor(startUTC / 1000);
+    let endTimestamp = getTimestampOfEndOfYesterday();
 
     const alchemicaPrices = await fetchAlchemicaPrices();
     const results = await Promise.all([

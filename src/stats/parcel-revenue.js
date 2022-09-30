@@ -9,16 +9,12 @@ const {
     TIME_INTERVAL_7d,
     TIME_INTERVAL_30d,
 } = require("../utils/constants");
+const { getTimestampOfEndOfYesterday } = require("../utils/datetime");
 
 // Calc Parcel Revenue
 const claimedAlchemicaWithUSD = async (parcels = []) => {
     // get Parcels
-    let startDate = new Date();
-    startDate.setDate(startDate.getDate() - 1);
-    startDate.setHours(23);
-    startDate.setMinutes(59);
-    startDate.setSeconds(59);
-    let endTimestamp = Math.floor(startDate.getTime() / 1000);
+    let endTimestamp = getTimestampOfEndOfYesterday();
 
     const alchemicaPrices = await fetchAlchemicaPrices();
     const results = await Promise.all([
