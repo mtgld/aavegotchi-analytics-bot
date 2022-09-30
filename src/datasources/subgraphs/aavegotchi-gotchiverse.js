@@ -13,27 +13,36 @@ const getChanneledAlchemicaEvents = async (
     let lastId = "0";
     let allResults = [];
     let result = {};
-    do {
+    while (true) {
         const query = `
     {
       channelAlchemicaEvents(first: 1000 orderBy: id orderDirection: asc where: {
         timestamp_gte: ${startTimestamp}
         timestamp_lt: ${endTimestamp}
-        gotchiId_in:[${gotchis.join(",")}]
-        id_gt: ${lastId}
+        gotchiId_in:["${gotchis.join('","')}"]
+        id_gt: "${lastId}"
       }) {
+        id
         gotchiId
         alchemica
       }
     }`;
 
         result = await apolloFetch({ query });
-        allResults = allResults.concat(result.data.channelAlchemicaEvents);
-        lastId =
-            result.data.channelAlchemicaEvents[
-                result.data.channelAlchemicaEvents.length - 1
-            ].id;
-    } while (result.data.channelAlchemicaEvents.length == 1000);
+        if (
+            result.data &&
+            result.data.channelAlchemicaEvents &&
+            result.data.channelAlchemicaEvents.length > 0
+        ) {
+            allResults = allResults.concat(result.data.channelAlchemicaEvents);
+            lastId =
+                result.data.channelAlchemicaEvents[
+                    result.data.channelAlchemicaEvents.length - 1
+                ].id;
+        } else {
+            break;
+        }
+    }
 
     return allResults;
 };
@@ -44,7 +53,7 @@ const getParcelsOf = async (address) => {
     let allResults = [];
     do {
         let query = `
-          {parcels(first: 1000 orderBy: id orderDirection: asc where: {id_gt: ${lastId} owner: "${address}"}) {
+          {parcels(first: 1000 orderBy: id orderDirection: asc where: {id_gt: "${lastId}" owner: "${address}"}) {
             id
           }}
         `;
@@ -66,31 +75,39 @@ const getAlchemicaClaimedEventsOfParcels = async (
     let allResults = [];
     let lastId = "0";
     let result;
-    do {
+    while (true) {
         const query = `
-    {
-      alchemicaClaimedEvents(first: 1000 orderBy: id orderDirection: asc where: {
-        timestamp_gte: ${startTimestamp}
-        timestamp_lt: ${endTimestamp}
-        realmId_in:[${parcels.join(",")}]
-        id_gt: ${lastId}
-      }) {
-        id
-        realmId
-        alchemicaType
-        amount
-        timestamp
-      }
-    }`;
+        {
+        alchemicaClaimedEvents(first: 1000 orderBy: id orderDirection: asc where: {
+            timestamp_gte: ${startTimestamp}
+            timestamp_lt: ${endTimestamp}
+            realmId_in:["${parcels.join('","')}"]
+            id_gt: "${lastId}"
+        }) {
+            id
+            realmId
+            alchemicaType
+            amount
+            timestamp
+        }
+        }`;
 
         result = await apolloFetch({ query });
-        allResults = allResults.concat(result.data.alchemicaClaimedEvents);
-        lastId =
-            result.data.alchemicaClaimedEvents[
-                result.data.alchemicaClaimedEvents.length - 1
-            ].id;
-    } while (result.data.alchemicaClaimedEvents.length == 1000);
 
+        if (
+            result.data &&
+            result.data.alchemicaClaimedEvents &&
+            result.data.alchemicaClaimedEvents.length > 0
+        ) {
+            allResults = allResults.concat(result.data.alchemicaClaimedEvents);
+            lastId =
+                result.data.alchemicaClaimedEvents[
+                    result.data.alchemicaClaimedEvents.length - 1
+                ].id;
+        } else {
+            break;
+        }
+    }
     return allResults;
 };
 

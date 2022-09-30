@@ -11,7 +11,7 @@ const fetchGotchiIdsOf = async (walletAddress) => {
     let id = "0";
     let results = {};
     do {
-        let query = `{aavegotchis(orderBy: id orderDirection: asc first: 1000 where: {id_gt: ${id} originalOwner: "${walletAddress.toLowerCase()}"}) {
+        let query = `{aavegotchis(orderBy: id orderDirection: asc first: 1000 where: {id_gt: "${id}" originalOwner: "${walletAddress.toLowerCase()}"}) {
             id
         }}`;
 
