@@ -3,7 +3,11 @@ const { fetchAlchemicaPrices } = require("../datasources/http/llama");
 const {
     getChanneledAlchemicaEvents,
 } = require("../datasources/subgraphs/aavegotchi-gotchiverse");
-const { sumAlchemica, getUSDFromAlchemica } = require("../utils/alchemica");
+const {
+    sumAlchemica,
+    getUSDFromAlchemica,
+    avgSpilloverRate,
+} = require("../utils/alchemica");
 const {
     TIME_INTERVAL_24h,
     TIME_INTERVAL_7d,
@@ -34,9 +38,27 @@ const channeledAlchemicaWithUSD = async (gotchis = []) => {
     ]);
 
     let overallDataIntervals = [
-        { alchemica: [0, 0, 0, 0], usd: 0, channels: 0, gotchis: 0 },
-        { alchemica: [0, 0, 0, 0], usd: 0, channels: 0, gotchis: 0 },
-        { alchemica: [0, 0, 0, 0], usd: 0, channels: 0, gotchis: 0 },
+        {
+            alchemica: [0, 0, 0, 0],
+            usd: 0,
+            channels: 0,
+            gotchis: 0,
+            spilloverRate: 0,
+        },
+        {
+            alchemica: [0, 0, 0, 0],
+            usd: 0,
+            channels: 0,
+            gotchis: 0,
+            spilloverRate: 0,
+        },
+        {
+            alchemica: [0, 0, 0, 0],
+            usd: 0,
+            channels: 0,
+            gotchis: 0,
+            spilloverRate: 0,
+        },
     ];
 
     let gotchisDataIntervals = [];
@@ -63,6 +85,10 @@ const channeledAlchemicaWithUSD = async (gotchis = []) => {
         });
 
         gotchisDataIntervals.push(gotchiDataIntervals);
+    });
+
+    results.forEach((r, i) => {
+        overallDataIntervals[i].spilloverRate = avgSpilloverRate(r);
     });
 
     return {

@@ -21,10 +21,12 @@ const getChanneledAlchemicaEvents = async (
         timestamp_lt: ${endTimestamp}
         gotchiId_in:["${gotchis.join('","')}"]
         id_gt: "${lastId}"
+        spilloverRate_gt: "0"
       }) {
         id
         gotchiId
         alchemica
+        spilloverRate
       }
     }`;
 
@@ -83,12 +85,14 @@ const getAlchemicaClaimedEventsOfParcels = async (
             timestamp_lt: ${endTimestamp}
             realmId_in:["${parcels.join('","')}"]
             id_gt: "${lastId}"
+            spilloverRate_gt: "0"
         }) {
             id
             realmId
             alchemicaType
             amount
             timestamp
+            spilloverRate
         }
         }`;
 

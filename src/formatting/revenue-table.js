@@ -48,10 +48,7 @@ const revenueTable = (intervals = []) => {
         t.cell("ALPHA", e.alchemica[2].toFixed(2));
         t.cell("KEK", e.alchemica[3].toFixed(2));
         if (e.harvests) {
-            t.cell(
-                "HARVESTS",
-                `${e.harvests / 4}/${e.parcels * getHarvestMultiplier(i)}`
-            );
+            t.cell("HARVESTS", `${e.harvests / 4}`);
         }
 
         if (e.channels) {
@@ -60,7 +57,11 @@ const revenueTable = (intervals = []) => {
                 `${e.channels}/${e.gotchis * getChannelMultiplier(i)}`
             );
         }
-        t.cell("USD", e.usd.toFixed(2));
+
+        if (e.spilloverRate) {
+            t.cell("SPILLOVER", `${e.spilloverRate}`);
+        }
+        t.cell("USD", e.usd, EasyTable.number(2));
         t.newRow();
     });
 
