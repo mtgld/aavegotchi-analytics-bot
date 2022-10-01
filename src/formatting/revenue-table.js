@@ -48,7 +48,7 @@ const revenueTable = (intervals = []) => {
         t.cell("ALPHA", e.alchemica[2].toFixed(2));
         t.cell("KEK", e.alchemica[3].toFixed(2));
         if (e.harvests) {
-            t.cell("HARVESTS", `${e.harvests / 4}`);
+            t.cell("HARVESTS", `${(e.harvests / 4).toFixed(0)}`);
         }
 
         if (e.channels) {
