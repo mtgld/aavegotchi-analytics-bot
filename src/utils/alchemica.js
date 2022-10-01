@@ -1,14 +1,16 @@
 const { ethers } = require("ethers");
 
 const sumAlchemica = (results) => {
-    let alchemica = [0, 0, 0, 0];
+    let alchemicaSum = [0, 0, 0, 0];
     results.forEach((e) => {
-        alchemica.forEach((a, i) => {
-            alchemica[i] =
-                a + parseFloat(ethers.utils.formatEther(e.alchemica[i]));
+        e.alchemica.forEach((a, i) => {
+            alchemicaSum[i] =
+                alchemicaSum[i] +
+                parseFloat(ethers.utils.formatEther(a)) *
+                    (1 - e.spilloverRate / 10000);
         });
     });
-    return alchemica;
+    return alchemicaSum;
 };
 
 const getUSDFromAlchemica = (
@@ -24,7 +26,17 @@ const getUSDFromAlchemica = (
     });
 };
 
+const avgSpilloverRate = (results) => {
+    let spilloverRateSum = 0;
+    results.forEach((e) => {
+        spilloverRateSum += parseInt(e.spilloverRate) / 100;
+    });
+
+    return parseFloat((spilloverRateSum / results.length).toFixed(2));
+};
+
 module.exports = {
     sumAlchemica,
     getUSDFromAlchemica,
+    avgSpilloverRate,
 };

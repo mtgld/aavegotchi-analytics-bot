@@ -3,7 +3,7 @@ const { fetchAlchemicaPrices } = require("../datasources/http/llama");
 const {
     getAlchemicaClaimedEventsOfParcels,
 } = require("../datasources/subgraphs/aavegotchi-gotchiverse");
-const { getUSDFromAlchemica } = require("../utils/alchemica");
+const { getUSDFromAlchemica, avgSpilloverRate } = require("../utils/alchemica");
 const {
     TIME_INTERVAL_24h,
     TIME_INTERVAL_7d,
@@ -36,19 +36,38 @@ const claimedAlchemicaWithUSD = async (parcels = []) => {
     ]);
 
     const sumAlchemica = (results) => {
-        let alchemica = [0, 0, 0, 0];
+        let alchemicaSum = [0, 0, 0, 0];
         results.forEach((e) => {
-            alchemica[parseInt(e.alchemicaType)] =
-                alchemica[parseInt(e.alchemicaType)] +
-                parseFloat(ethers.utils.formatEther(e.amount));
+            alchemicaSum[parseInt(e.alchemicaType)] =
+                alchemicaSum[parseInt(e.alchemicaType)] +
+                parseFloat(ethers.utils.formatEther(e.amount)) *
+                    (1 - e.spilloverRate / 10000);
         });
-        return alchemica;
+        return alchemicaSum;
     };
 
     let overallDataIntervals = [
-        { alchemica: [0, 0, 0, 0], usd: 0, harvests: 0, parcels: 0 },
-        { alchemica: [0, 0, 0, 0], usd: 0, harvests: 0, parcels: 0 },
-        { alchemica: [0, 0, 0, 0], usd: 0, harvests: 0, parcels: 0 },
+        {
+            alchemica: [0, 0, 0, 0],
+            usd: 0,
+            harvests: 0,
+            parcels: 0,
+            spilloverRate: 0,
+        },
+        {
+            alchemica: [0, 0, 0, 0],
+            usd: 0,
+            harvests: 0,
+            parcels: 0,
+            spilloverRate: 0,
+        },
+        {
+            alchemica: [0, 0, 0, 0],
+            usd: 0,
+            harvests: 0,
+            parcels: 0,
+            spilloverRate: 0,
+        },
     ];
     let parcelDataIntervals = [];
 
@@ -78,6 +97,10 @@ const claimedAlchemicaWithUSD = async (parcels = []) => {
             overallDataIntervals[i].usd += usdFromAlchemicaSums;
         });
         parcelDataIntervals.push(parcelSums);
+    });
+
+    results.forEach((r, i) => {
+        overallDataIntervals[i].spilloverRate = avgSpilloverRate(r);
     });
 
     return {
