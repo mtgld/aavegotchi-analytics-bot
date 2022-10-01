@@ -59,7 +59,7 @@ const revenueTable = (intervals = []) => {
         }
 
         if (e.spilloverRate) {
-            t.cell("SPILLOVER", `${e.spilloverRate}`);
+            t.cell("SPILLOVER", `${e.spilloverRate}%`);
         }
         t.cell("USD", e.usd, EasyTable.number(2));
         t.newRow();
