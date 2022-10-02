@@ -42,11 +42,11 @@ const getChannelMultiplier = (index) => {
 const revenueTable = (intervals = []) => {
     const t = new EasyTable();
     intervals.forEach((e, i) => {
-        t.cell("INTERVAL", getInterval(i));
-        t.cell("FUD", e.alchemica[0].toFixed(2));
-        t.cell("FOMO", e.alchemica[1].toFixed(2));
-        t.cell("ALPHA", e.alchemica[2].toFixed(2));
-        t.cell("KEK", e.alchemica[3].toFixed(2));
+        t.cell("TI", getInterval(i));
+        t.cell("FUD", e.alchemica[0].toFixed(0));
+        t.cell("FOMO", e.alchemica[1].toFixed(0));
+        t.cell("ALPHA", e.alchemica[2].toFixed(0));
+        t.cell("KEK", e.alchemica[3].toFixed(0));
         if (e.harvests) {
             t.cell("HARVESTS", `${(e.harvests / 4).toFixed(0)}`);
         }
@@ -59,9 +59,9 @@ const revenueTable = (intervals = []) => {
         }
 
         if (e.spilloverRate) {
-            t.cell("SPILLOVER", `${e.spilloverRate}%`);
+            t.cell("SO", `${e.spilloverRate}%`);
         }
-        t.cell("USD", e.usd, EasyTable.number(2));
+        t.cell("USD", e.usd, EasyTable.number(0));
         t.newRow();
     });
 
