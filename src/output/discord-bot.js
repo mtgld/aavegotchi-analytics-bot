@@ -62,6 +62,7 @@ ${revenueTable(result.overallDataIntervals)}\`\`\``);
 Address: ${wallet}
 Total Gotchis: ${await gotchIdsAmount}
 Total Parcels: ${await parcelIdsAmount}
+SO is average spillover
 
 --------------------- CHANNELING STATS ------------------
 
