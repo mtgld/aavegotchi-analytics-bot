@@ -32,7 +32,7 @@ const startGotchiManagerBot = () => {
             message.reply(`\`\`\`
 Channeled Alchemica report for Gotchi ${args[0]}
 
---------------------- CHANNELING STATS ---------------------
+---------------- CHANNELING STATS ----------------
 
 ${revenueTable(result.overallDataIntervals)}\`\`\``);
         } else if (command == "parcel" && args.length > 0) {
@@ -40,7 +40,7 @@ ${revenueTable(result.overallDataIntervals)}\`\`\``);
             message.reply(`\`\`\`
 Claimed Alchemica report for Parcel ${args[0]}
 
---------------------- HARVESTING STATS ---------------------
+---------------- HARVESTING STATS ----------------
 
 ${revenueTable(result.overallDataIntervals)}\`\`\``);
         } else if (command == "stats") {
@@ -59,19 +59,15 @@ ${revenueTable(result.overallDataIntervals)}\`\`\``);
             ]);
 
             message.reply(`\`\`\`
-Daily report on ${new Date().toLocaleDateString(
-                "en-EN"
-            )} for your assets managed by Metaguild
-Owner address: ${wallet}
-
+Address: ${wallet}
 Total Gotchis: ${await gotchIdsAmount}
 Total Parcels: ${await parcelIdsAmount}
 
---------------------- CHANNELING STATS ---------------------
+--------------------- CHANNELING STATS ------------------
 
 ${revenueTable(channeledRevenue.overallDataIntervals)}
 
---------------------- HARVESTING STATS ---------------------
+--------------------- HARVESTING STATS ------------------
 
 ${revenueTable(claimedRevenue.overallDataIntervals)}
 \`\`\``);
