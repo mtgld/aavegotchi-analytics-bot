@@ -3,7 +3,7 @@ const { createApolloFetch } = require("apollo-fetch");
 const apolloFetchCore = createApolloFetch({
     uri:
         process.env.CORE_SUBGRAPH ||
-        "https://api.thegraph.com/subgraphs/name/aavegotchi/aavegotchi-core-matic",
+        "https://subgraph.satsuma-prod.com/tWYl5n5y04oz/aavegotchi/aavegotchi-core-matic/api",
 });
 
 const fetchGotchiIdsOf = async (walletAddress) => {
